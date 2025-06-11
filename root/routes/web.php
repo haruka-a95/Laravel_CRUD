@@ -28,5 +28,7 @@ Route::prefix('admin')->name('admin')->group(function () {
         Route::delete('{job}', 'destroy')->name('.destroy'); // admin/jobs/{job}    admin.jobs.destroy › JobController@destroy
         Route::get('{job}/edit', 'edit')->name('.edit'); // admin/jobs/{job}/edit    admin.jobs.edit › JobController@edit
         Route::post('{job}/confirm', 'confirm')->name('.confirm'); // admin/jobs/{job}/confirm    admin.jobs.confirm › JobController@confirm
+        Route::post('csv', 'downloadCsv')->name('.csv');
+        Route::post('tsv', 'downloadTsv')->name('.tsv');
     });
 });

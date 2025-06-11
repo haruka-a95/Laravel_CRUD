@@ -67,7 +67,7 @@ class JobController extends Controller
         $job->name = $request->name;
         $job->update();
         return redirect(
-            route('admin.jobs.show', ['jobs'=>$job])
+            route('admin.jobs.show', ['job'=>$job])
         )->with('messages.success', '更新が完了しました。');
     }
 
@@ -76,5 +76,82 @@ class JobController extends Controller
         //削除
         $job->delete();
         return redirect(route('admin.jobs.index'));
+    }
+
+    public function downloadCsv()
+    {
+        $csvRecords = self::getJobCsvRecords();
+        return self::streamDownloadCsv('jobs.csv', $csvRecords);
+    }
+
+    private static function getJobCsvRecords():array//headerつき全件
+    {
+        $jobs = Job::orderByDesc('id')->get();//ID順に全件取得
+        $csvRecords = [
+            ['ID', '名称'], //ヘッダー
+        ];
+        foreach($jobs as $job){
+            $csvRecords[] = [$job->id, $job->name];
+        }
+        return $csvRecords;
+
+    }
+
+    private static function streamDownloadCsv(
+        string $name,
+        iterable $fieldsList,
+        string $separator = ',',
+        string $enclosure = '"',
+        string $escape = "\\",
+        string $eol = "\r\n"
+    ){
+        $contentType = 'text/plain'; // テキストファイル
+        if ($separator === ',') {
+            $contentType = 'text/csv';
+        } elseif ($separator === '\t'){
+            $contentType = 'text/tab-separated-values';
+        }
+        $headers = ['Content-Type'=>$contentType];
+
+        return response()->streamDownload(function() use ($fieldsList, $separator, $enclosure, $escape, $eol){
+            $stream = fopen('php://output', 'w');
+            // ↓UTF-8 BOMを出力（Excel対策）
+            fwrite($stream, "\xEF\xBB\xBF");
+            foreach($fieldsList as $field){
+                fputcsv($stream, $field, $separator, $enclosure, $escape, $eol);
+            }
+            fclose($stream);
+        }, $name, $headers);
+    }
+
+    public function downloadTsv()
+    {
+        $csvRecords = self::getJobCsvRecords();
+        return self::streamDownloadTsv('jobs.tsv', $csvRecords);
+    }
+
+    private static function streamDownloadTsv(
+        string $name,
+        iterable $records,
+        string $eol = "\r\n"
+    ){
+        $headers = ['Content-type' => 'text/tab-separated-values'];
+
+        return response()->streamDownload(function () use ($records, $eol){
+            $stream = fopen('php://output', 'w');
+
+            //Excel用
+            fwrite($stream, "\xEF\xBB\xBF");
+
+            foreach ($records as $row) {
+                //タブと改行を置換
+                $escaped = array_map(
+                    fn($v)=>str_replace(["\t", "\r", "\n"], [' ', '', ' '], $v), $row);//それぞれ空文字に
+
+                    //tab区切りを書き込み
+                    fwrite($stream, implode("\t", $escaped) . $eol);
+            }
+            fclose($stream);
+        }, $name, $headers);
     }
 }
