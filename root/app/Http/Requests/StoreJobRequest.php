@@ -6,7 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreJobRequest extends FormRequest
 {
-
     public function authorize()
     {
         return true;
@@ -22,7 +21,7 @@ class StoreJobRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name'=>'名称',
+            'name' => '名称',
         ];
     }
 }

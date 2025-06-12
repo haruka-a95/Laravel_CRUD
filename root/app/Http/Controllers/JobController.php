@@ -10,18 +10,14 @@ class JobController extends Controller
 {
     public function index()
     {
-        // 一覧画面
-        //   id 降順でレコードセットを取得(Illuminate\Pagination\LengthAwarePaginator)
         $jobs = Job::orderByDesc('id')->paginate(20);
         return view('admin.jobs.index', [
-            'jobs' => $jobs,
+            'jobs'=> $jobs,
         ]);
     }
 
-
     public function create()
     {
-        //新規画面
         return view('admin.jobs.create');
     }
 
@@ -38,23 +34,20 @@ class JobController extends Controller
 
     public function show(Job $job)
     {
-        //詳細画面
         return view('admin.jobs.show', [
-            'job'=> $job,
+            'job'=>$job,
         ]);
     }
 
     public function edit(Job $job)
     {
-        //編集画面
         return view('admin.jobs.edit', [
-            'job'=> $job,
+            'job' => $job,
         ]);
     }
 
     public function confirm(UpdateJobRequest $request, Job $job)
     {
-        // 更新確認画面
         $job->name = $request->name;
         return view('admin.jobs.confirm', [
             'job' => $job,
@@ -63,7 +56,6 @@ class JobController extends Controller
 
     public function update(UpdateJobRequest $request, Job $job)
     {
-        //更新
         $job->name = $request->name;
         $job->update();
         return redirect(
@@ -73,7 +65,6 @@ class JobController extends Controller
 
     public function destroy(Job $job)
     {
-        //削除
         $job->delete();
         return redirect(route('admin.jobs.index'));
     }
@@ -84,72 +75,45 @@ class JobController extends Controller
         return self::streamDownloadCsv('jobs.csv', $csvRecords);
     }
 
-    private static function getJobCsvRecords():array//headerつき全件
+    public function downloadTsv()
     {
-        $jobs = Job::orderByDesc('id')->get();//ID順に全件取得
+        $tsvRecords = self::getJobCsvRecords();
+        $separator = "\t";
+        return self::streamDownloadCsv('jobs.tsv', $tsvRecords, $separator);
+    }
+
+    private static function getJobCsvRecords():array
+    {
+        $jobs = Job::orderByDesc('id')->get();
         $csvRecords = [
-            ['ID', '名称'], //ヘッダー
+            ['ID', '名称']//header
         ];
-        foreach($jobs as $job){
+        foreach ($jobs as $job) {
             $csvRecords[] = [$job->id, $job->name];
         }
         return $csvRecords;
-
     }
 
     private static function streamDownloadCsv(
         string $name,
-        iterable $fieldsList,
+        iterable $fieldList,
         string $separator = ',',
         string $enclosure = '"',
-        string $escape = "\\",
+        string $escape = '\\',
         string $eol = "\r\n"
     ){
-        $contentType = 'text/plain'; // テキストファイル
+        $contentType = 'text/plain';
         if ($separator === ',') {
             $contentType = 'text/csv';
-        } elseif ($separator === '\t'){
+        } elseif ($separator === "/t"){
             $contentType = 'text/tab-separated-values';
         }
-        $headers = ['Content-Type'=>$contentType];
+        $headers = ['Content-Type' => $contentType];
 
-        return response()->streamDownload(function() use ($fieldsList, $separator, $enclosure, $escape, $eol){
+        return response()->streamDownload(function () use ($fieldList, $separator, $enclosure, $escape, $eol){
             $stream = fopen('php://output', 'w');
-            // ↓UTF-8 BOMを出力（Excel対策）
-            fwrite($stream, "\xEF\xBB\xBF");
-            foreach($fieldsList as $field){
-                fputcsv($stream, $field, $separator, $enclosure, $escape, $eol);
-            }
-            fclose($stream);
-        }, $name, $headers);
-    }
-
-    public function downloadTsv()
-    {
-        $csvRecords = self::getJobCsvRecords();
-        return self::streamDownloadTsv('jobs.tsv', $csvRecords);
-    }
-
-    private static function streamDownloadTsv(
-        string $name,
-        iterable $records,
-        string $eol = "\r\n"
-    ){
-        $headers = ['Content-type' => 'text/tab-separated-values'];
-
-        return response()->streamDownload(function () use ($records, $eol){
-            $stream = fopen('php://output', 'w');
-
-            //Excel用
-            fwrite($stream, "\xEF\xBB\xBF");
-
-            foreach ($records as $row) {
-                //タブと改行を置換
-                $escaped = array_map(
-                    fn($v)=>str_replace(["\t", "\r", "\n"], [' ', '', ' '], $v), $row);//それぞれ空文字に
-
-                    //tab区切りを書き込み
-                    fwrite($stream, implode("\t", $escaped) . $eol);
+            foreach ($fieldList as $fields){
+                fputcsv($stream, $fields, $separator, $enclosure, $escape, $eol);
             }
             fclose($stream);
         }, $name, $headers);

@@ -7,21 +7,21 @@
 @endsection
 
 @section('content')
+<div class="d-flex justify-content-start">
+  <form action="{{ route('admin.jobs.csv') }}" method="POST" class="pr-2">
+    @csrf
+    <button type="submit" class="btn btn-primary">CSV</button>
+  </form>
+  <form action="{{ route('admin.jobs.tsv') }}" method="POST" class="pl-2">
+    @csrf
+    <button type="submit" class="btn btn-primary">TSV</button>
+  </form>
+</div>
 <div>
   <div class="container">
     <div class="row">
-      <div class="col d-flex justify-content-end container-fluid">
-        <div class="d-flex">
-          <form action="{{ route('admin.jobs.csv') }}" method="POST">
-           @csrf
-            <button type="submit" class="btn btn-primary mr-5">CSV</button>
-          </form>
-          <form action="{{ route('admin.jobs.tsv') }}" method="POST">
-           @csrf
-            <button type="submit" class="btn btn-primary">TSV</button>
-          </form>
-        </div>
-        <a href="{{ route('admin.jobs.create') }}" class="btn btn-primary ml-5">新規</a>
+      <div class="col text-right">
+        <a href="{{ route('admin.jobs.create') }}" class="btn btn-primary">新規</a>
       </div>
     </div>
   </div>

@@ -15,17 +15,18 @@ class JobSeeder extends Seeder
      */
     public function run()
     {
-        // 開発環境のみ100レコードを追加する。
-        Job::factory()
-            ->count(100) //100件を追加
-            ->sequence(function ($sequence) {
-                return [
-                    'name' => sprintf('JOB_%04d', $sequence->index +1),
-                    'deleted_at' => null,
-                    'created_at' => '2022-12-30 11:22:33',
-                    'updated_at' => '2022-12-31 23:58:59',
-                ];
-            })
-             ->create();
+        if (app()->isLocal()) {
+            Job::factory()
+                ->count(100)
+                ->sequence(function ($sequence){
+                    return [
+                        'name'=> sprintf('JOB_%04d', $sequence->index + 1),
+                        'deleted_at'=>null,
+                        'created_at'=> '2022-12-30 11:22:33',
+                        'updated_at'=> '2022-12-31 23:58:59',
+                    ];
+                })
+                ->create();
+        }
     }
 }
