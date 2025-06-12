@@ -24,15 +24,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-<<<<<<< HEAD
         Paginator::useBootstrapFour();
-=======
-        // Illuminate\Pagination\Paginator
-        // Bootstrap4を使用
-        Paginator::useBootstrapFour();
-
-        // Laravel8の場合
-        // Paginator::useBootstrap();
->>>>>>> origin/develop
     }
 }
